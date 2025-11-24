@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git 'https://github.com/username/sample-java-maven.git'
+                git 'https://github.com/OlladapuShruthi/Maven_Project.git'
             }
         }
 
