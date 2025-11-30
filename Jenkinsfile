@@ -2,8 +2,13 @@ pipeline {
     agent any
 
     tools {
-        jdk 'DefaultJDK'    // Make sure JDK is configured in Jenkins global tools
-        maven 'MAVEN'       // Make sure Maven is configured in Jenkins global tools
+        jdk 'DefaultJDK'
+        maven 'MAVEN'
+    }
+
+    environment {
+        // Optional: Email recipient
+        EMAIL_RECIPIENT = 'olladapushruthi@gmail.com'
     }
 
     stages {
@@ -13,24 +18,20 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                bat 'mvn clean package'
+                // Windows batch command
+                bat 'mvn clean test'
             }
         }
 
-        stage('Test') {
+        stage('Package') {
             steps {
-                bat 'mvn test'
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                }
+                bat 'mvn package'
             }
         }
 
-        stage('Archive') {
+        stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
@@ -39,13 +40,24 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished'
+            echo 'Build completed'
         }
+
         success {
-            mail bcc: '', body: 'Build Success', cc: '', from: '', replyTo: '', subject: 'Jenkins Build Success', to: 'olladapushruthi@gmail.com'
+            // Publish test results
+            junit '**/target/surefire-reports/*.xml'
+
+            // Optional: Send email (requires Email Extension Plugin)
+            mail to: "${EMAIL_RECIPIENT}",
+                 subject: "SUCCESS: Maven_Project Build #${env.BUILD_NUMBER}",
+                 body: "Good news! The build succeeded. Check console output: ${env.BUILD_URL}"
         }
+
         failure {
-            mail bcc: '', body: 'Build Failed', cc: '', from: '', replyTo: '', subject: 'Jenkins Build Failed', to: 'olladapushruthi@gmail.com'
+            junit '**/target/surefire-reports/*.xml'
+            mail to: "${EMAIL_RECIPIENT}",
+                 subject: "FAILURE: Maven_Project Build #${env.BUILD_NUMBER}",
+                 body: "Oops! The build failed. Check console output: ${env.BUILD_URL}"
         }
     }
 }
