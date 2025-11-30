@@ -2,36 +2,36 @@ pipeline {
     agent any
 
     tools {
-        jdk 'DefaultJDK'       // Make sure this matches the JDK name in Jenkins
-        maven 'MAVEN'          // Make sure this matches the Maven name in Jenkins
+        jdk 'DefaultJDK'    // Make sure JDK is configured in Jenkins global tools
+        maven 'MAVEN'       // Make sure Maven is configured in Jenkins global tools
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo 'Cloning repository...'
-                git url: 'https://github.com/OlladapuShruthi/Maven_Project.git', branch: 'master'
+                git 'https://github.com/OlladapuShruthi/Maven_Project.git'
             }
         }
 
-        stage('Build & Test') {
+        stage('Build') {
             steps {
-                echo 'Running Maven clean and test...'
-                bat 'mvn clean test'
+                bat 'mvn clean package'
             }
         }
 
-        stage('Package') {
+        stage('Test') {
             steps {
-                echo 'Packaging the project...'
-                bat 'mvn package'
+                bat 'mvn test'
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
             }
         }
 
-        stage('Archive Artifact') {
+        stage('Archive') {
             steps {
-                echo 'Archiving the built JAR file...'
-                // Use wildcard to catch any JAR in target folder
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
@@ -39,7 +39,13 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished!'
+            echo 'Pipeline finished'
+        }
+        success {
+            mail bcc: '', body: 'Build Success', cc: '', from: '', replyTo: '', subject: 'Jenkins Build Success', to: 'olladapushruthi@gmail.com'
+        }
+        failure {
+            mail bcc: '', body: 'Build Failed', cc: '', from: '', replyTo: '', subject: 'Jenkins Build Failed', to: 'olladapushruthi@gmail.com'
         }
     }
 }
