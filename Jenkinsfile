@@ -1,69 +1,54 @@
-// pipeline {
-//     agent any
-
-//     tools {
-//         maven 'MAVEN_HOME'
-//         jdk 'JAVA_HOME'
-//     }
-
-//     stages {
-//         stage('Clone') {
-//             steps {
-//                 git 'https://github.com/OlladapuShruthi/Maven_Project.git'
-//             }
-//         }
-
-//         stage('Build') {
-//             steps {
-//                 sh 'mvn clean install'
-//             }
-//         }
-
-//         stage('Test') {
-//             steps {
-//                 sh 'mvn test'
-//             }
-//         }
-//     }
-
-//     post {
-//         success {
-//             echo "🎉 Pipeline completed successfully!"
-//         }
-//         failure {
-//             echo "❌ Something went wrong."
-//         }
-//     }
-// }
 pipeline {
-    agent any
+  agent any
 
-    stages {
-        stage('Clone Repo') {
-            steps {
-                git url: 'https://github.com/OlladapuShruthi/Maven_Project.git'
-            }
-        }
+  tools {
+    // Name of Maven installation in Jenkins global config
+    maven 'MAVEN'  
+    // Name of JDK installation in Jenkins global config
+    jdk 'DefaultJDK'  
+  }
 
-        stage('Build') {
-            steps {
-                bat 'mvn clean install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                bat 'mvn test'
-            }
-        }
+  stages {
+    stage('Checkout') {
+      steps {
+        git url: 'https://github.com/OlladapuShruthi/WebProject.git', branch: 'master'
+      }
     }
 
-    post {
-        success {
-            echo "🎉 BUILD SUCCESS — Java project compiled and tested!"
-        }
-        failure {
-            echo "❌ Build failed — check console logs!"
-        }
+    stage('Build & Test') {
+      steps {
+        // Build and run tests
+        sh 'mvn clean test'
+      }
     }
+
+    stage('Package') {
+      steps {
+        // Build the WAR (or package accordingly)
+        sh 'mvn clean package'
+      }
+    }
+
+    stage('Archive Artifact') {
+      steps {
+        // Archive the WAR/JAR artifact produced
+        archiveArtifacts artifacts: '**/target/*.war', fingerprint: true
+      }
+    }
+
+    // Optional: deploy to Tomcat if you have a server ready
+    // stage('Deploy to Tomcat') {
+    //   steps {
+    //     // For example, copy WAR to Tomcat webapps directory
+    //     sh 'cp target/yourapp.war /path/to/tomcat/webapps/'
+    //   }
+    // }
+  }
+
+  post {
+    always {
+      // (optional) record test results, if you have surefire reports
+      junit '**/target/surefire-reports/*.xml'
+    }
+  }
 }
