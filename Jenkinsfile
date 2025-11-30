@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'MAVEN'
-        jdk 'DefaultJDK'
+        jdk 'DefaultJDK'       // Make sure this matches the JDK name in Jenkins
+        maven 'MAVEN'          // Make sure this matches the Maven name in Jenkins
     }
 
     stages {
@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                echo 'Running Maven build and tests...'
+                echo 'Running Maven clean and test...'
                 bat 'mvn clean test'
             }
         }
@@ -24,14 +24,15 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Packaging the project...'
-                bat 'mvn clean package'
+                bat 'mvn package'
             }
         }
 
         stage('Archive Artifact') {
             steps {
                 echo 'Archiving the built JAR file...'
-                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                // Use wildcard to catch any JAR in target folder
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
     }
