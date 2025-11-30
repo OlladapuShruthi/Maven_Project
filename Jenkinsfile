@@ -7,7 +7,6 @@ pipeline {
     }
 
     environment {
-        // Optional: Email recipient
         EMAIL_RECIPIENT = 'olladapushruthi@gmail.com'
     }
 
@@ -20,7 +19,6 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                // Windows batch command
                 bat 'mvn clean test'
             }
         }
@@ -44,20 +42,17 @@ pipeline {
         }
 
         success {
-            // Publish test results
             junit '**/target/surefire-reports/*.xml'
-
-            // Optional: Send email (requires Email Extension Plugin)
             mail to: "${EMAIL_RECIPIENT}",
                  subject: "SUCCESS: Maven_Project Build #${env.BUILD_NUMBER}",
-                 body: "Good news! The build succeeded. Check console output: ${env.BUILD_URL}"
+                 body: "Good news! Build succeeded. ${env.BUILD_URL}"
         }
 
         failure {
             junit '**/target/surefire-reports/*.xml'
             mail to: "${EMAIL_RECIPIENT}",
                  subject: "FAILURE: Maven_Project Build #${env.BUILD_NUMBER}",
-                 body: "Oops! The build failed. Check console output: ${env.BUILD_URL}"
+                 body: "Oops! Build failed. ${env.BUILD_URL}"
         }
     }
 }
